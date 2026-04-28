@@ -164,11 +164,17 @@ Zod schemas live in `src/lib/validation/` and are shared by client (form errors)
 
 ### Cut rules
 - `startDate`: not in the future
-- `targetWeightKg`: 20.0 – 400.0; warn (not block) at cut-creation time if target ≥ the user's most recent weight entry (if any exist) — this is a cutting tracker, not a bulking one. No warning if the user has no prior entries.
+- `targetWeightKg`: 20.0 – 400.0
 - `endDate`: must be ≥ `startDate`
 - At most one active cut per user (partial unique index)
 - Deleting a cut requires zero entries; otherwise the user must end it
 - Ending a cut does not detach existing entries; future entries simply won't auto-attach until a new cut starts
+
+### Cut target sanity warning
+At cut-creation time, compare `targetWeightKg` against the user's **most recent weight entry across any cut**:
+- If the user has at least one prior weight entry and `targetWeightKg ≥ mostRecentWeightKg`: surface a non-blocking warning ("Your target is at or above your most recent weight — this is a cutting tracker. Continue?"). User can confirm and proceed.
+- If the user has no prior weight entries: no warning is shown. The cut is created without comparison.
+- This is a UI-layer warning only; the server action accepts any `targetWeightKg` in range and does not block on this rule.
 
 ### Edit window
 - Entries: `update` / `delete` allowed only if `now - createdAt < 24h`. Enforced server-side; UI also greys out the buttons.
