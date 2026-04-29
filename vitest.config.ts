@@ -11,7 +11,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
-    poolOptions: { threads: { singleThread: true } },
+    fileParallelism: false,
     env: {
       DATABASE_URL: process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL ?? '',
       AUTH_SECRET: process.env.AUTH_SECRET ?? 'test-secret',
