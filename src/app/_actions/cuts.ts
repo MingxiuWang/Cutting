@@ -68,9 +68,13 @@ export async function updateCut(
         parsed.error.flatten().fieldErrors as Record<string, string[]>,
       );
     }
+    const data: { name?: string; startDate?: Date; targetWeightKg?: number } = {};
+    if (parsed.data.name !== undefined) data.name = parsed.data.name;
+    if (parsed.data.startDate !== undefined) data.startDate = parsed.data.startDate;
+    if (parsed.data.targetWeightKg !== undefined) data.targetWeightKg = parsed.data.targetWeightKg;
     const cut = await db.cut.update({
       where: { id: cutId },
-      data: parsed.data,
+      data,
     });
     revalidatePath('/cuts');
     revalidatePath('/dashboard');
