@@ -17,7 +17,23 @@ function makeClient() {
   if (!connectionString) {
     throw new Error('DATABASE_URL is not set');
   }
-  const adapter = new PrismaNeon({ connectionString });
+
+  // Detect Neon vs plain Postgres. Use the Neon adapter only for Neon URLs;
+  // anything else (e.g. CI's local Postgres service container) goes through
+  // the vanilla pg-based adapter, which speaks the standard Postgres protocol
+  // instead of Neon's WebSocket transport.
+  const isNeon =
+    connectionString.includes('.neon.tech') || connectionString.includes('neondb_owner');
+
+  if (isNeon) {
+    const adapter = new PrismaNeon({ connectionString });
+    return new PrismaClient({ adapter });
+  }
+
+  // Plain Postgres (CI). Lazy-require so production bundles only pull the Neon adapter.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaPg } = require('@prisma/adapter-pg');
+  const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });
 }
 

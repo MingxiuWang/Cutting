@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cutting_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cutting_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cutting_test
+      AUTH_SECRET: ci-secret-not-real-must-be-32-bytes-long-aaaaaa
+      AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install postgres-client + enable citext
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y postgresql-client
+          PGPASSWORD=postgres psql -h localhost -U postgres -d cutting_test -c 'CREATE EXTENSION IF NOT EXISTS citext;'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma migrate deploy
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm test
+      - if: github.event_name == 'pull_request'
+        run: pnpm exec playwright install --with-deps chromium
+      - if: github.event_name == 'pull_request'
+        run: pnpm test:e2e
