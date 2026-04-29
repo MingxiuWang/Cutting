@@ -15,13 +15,19 @@ export default function SignupPage() {
     const password = String(formData.get('password') ?? '');
     const result = await signup({ email, password });
     if (!result.ok) {
-      setError(result.message ?? 'Signup failed');
+      const fieldMsg = Object.values(result.fieldErrors ?? {}).flat().join('; ');
+      setError(fieldMsg || result.message || `Signup failed (${result.error})`);
       return;
     }
     const fd = new FormData();
     fd.set('email', email);
     fd.set('password', password);
-    await loginAction(fd);
+    const loginResult = await loginAction(fd);
+    if (!loginResult.ok) {
+      setError(`Account created, but auto-login failed (${loginResult.error}). Please log in manually.`);
+      router.push('/login');
+      return;
+    }
     router.push('/dashboard');
   };
 

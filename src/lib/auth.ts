@@ -6,6 +6,7 @@ import { loginSchema } from '@/lib/validation/auth';
 import { checkLoginRateLimit } from '@/lib/rate-limit';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
   pages: { signIn: '/login' },
   providers: [
