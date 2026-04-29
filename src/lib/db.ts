@@ -4,12 +4,22 @@ import { neonConfig } from '@neondatabase/serverless';
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-// In Node runtimes (including vitest), supply the `ws` WebSocket implementation.
-// The native/undici WebSocket in Node 20+ has compatibility issues with the Neon
-// driver. In edge/browser contexts the global WebSocket is used automatically.
-if (typeof process !== 'undefined' && process.versions?.node && !neonConfig.webSocketConstructor) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  neonConfig.webSocketConstructor = require('ws');
+// Only polyfill `ws` when the runtime doesn't already provide WebSocket.
+// Vitest's jsdom env has no native WebSocket, so we install `ws` there.
+// Vercel/Node 20+ and edge runtimes have native WebSocket — skip the polyfill
+// (forcing `ws` there is fragile because it relies on bundler resolution).
+if (
+  typeof process !== 'undefined' &&
+  process.versions?.node &&
+  !neonConfig.webSocketConstructor &&
+  typeof (globalThis as { WebSocket?: unknown }).WebSocket === 'undefined'
+) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    neonConfig.webSocketConstructor = require('ws');
+  } catch {
+    // `ws` not bundled in this runtime — fall back to whatever the runtime provides.
+  }
 }
 
 function makeClient() {
