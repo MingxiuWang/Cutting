@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { ActionError, runAction } from '@/lib/errors';
-import { createCutSchema } from '@/lib/validation/cuts';
+import { createCutSchema, updateCutSchema, endCutSchema } from '@/lib/validation/cuts';
 
 async function requireUser() {
   const session = await auth();
@@ -43,5 +43,70 @@ export async function createCut(input: {
     revalidatePath('/cuts');
     revalidatePath('/dashboard');
     return cut;
+  });
+}
+
+async function loadOwnedCut(cutId: string, userId: string) {
+  const cut = await db.cut.findUnique({ where: { id: cutId } });
+  if (!cut) throw new ActionError('FORBIDDEN');
+  if (cut.userId !== userId) throw new ActionError('FORBIDDEN');
+  return cut;
+}
+
+export async function updateCut(
+  cutId: string,
+  input: { name?: string; startDate?: Date; targetWeightKg?: number },
+) {
+  return runAction(async () => {
+    const userId = await requireUser();
+    await loadOwnedCut(cutId, userId);
+    const parsed = updateCutSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new ActionError(
+        'VALIDATION_FAILED',
+        'Invalid input',
+        parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      );
+    }
+    const cut = await db.cut.update({
+      where: { id: cutId },
+      data: parsed.data,
+    });
+    revalidatePath('/cuts');
+    revalidatePath('/dashboard');
+    return cut;
+  });
+}
+
+export async function endCut(cutId: string, input: { endDate: Date }) {
+  return runAction(async () => {
+    const userId = await requireUser();
+    const existing = await loadOwnedCut(cutId, userId);
+    const parsed = endCutSchema.safeParse(input);
+    if (!parsed.success) throw new ActionError('VALIDATION_FAILED', 'Invalid input');
+    if (parsed.data.endDate < existing.startDate) {
+      throw new ActionError('VALIDATION_FAILED', 'endDate must be on or after startDate');
+    }
+    const cut = await db.cut.update({
+      where: { id: cutId },
+      data: { endDate: parsed.data.endDate },
+    });
+    revalidatePath('/cuts');
+    revalidatePath('/dashboard');
+    return cut;
+  });
+}
+
+export async function deleteCut(cutId: string) {
+  return runAction(async () => {
+    const userId = await requireUser();
+    await loadOwnedCut(cutId, userId);
+    const entryCount = await db.entry.count({ where: { cutId } });
+    if (entryCount > 0) {
+      throw new ActionError('CUT_HAS_ENTRIES', 'End the cut instead of deleting it.');
+    }
+    await db.cut.delete({ where: { id: cutId } });
+    revalidatePath('/cuts');
+    return { id: cutId };
   });
 }
