@@ -14,6 +14,38 @@ async function requireUser() {
   return session.user.id;
 }
 
+function serializeEntry(e: {
+  id: string;
+  userId: string;
+  cutId: string | null;
+  measuredAt: Date;
+  measuredDay: Date;
+  period: 'AM' | 'PM';
+  weightKg: unknown;
+  bodyFatPct: unknown;
+  musclePct: unknown;
+  waterPct: unknown;
+  note: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: e.id,
+    userId: e.userId,
+    cutId: e.cutId,
+    measuredAt: e.measuredAt,
+    measuredDay: e.measuredDay,
+    period: e.period,
+    weightKg: Number(e.weightKg),
+    bodyFatPct: Number(e.bodyFatPct),
+    musclePct: Number(e.musclePct),
+    waterPct: Number(e.waterPct),
+    note: e.note,
+    createdAt: e.createdAt,
+    updatedAt: e.updatedAt,
+  };
+}
+
 export async function createEntry(input: {
   measuredAt: Date;
   period: 'AM' | 'PM';
@@ -62,7 +94,7 @@ export async function createEntry(input: {
     });
     revalidatePath('/dashboard');
     revalidatePath('/entries');
-    return entry;
+    return serializeEntry(entry);
   });
 }
 
@@ -112,7 +144,7 @@ export async function updateEntry(
     const updated = await db.entry.update({ where: { id: entryId }, data });
     revalidatePath('/dashboard');
     revalidatePath('/entries');
-    return updated;
+    return serializeEntry(updated);
   });
 }
 

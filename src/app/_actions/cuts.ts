@@ -12,6 +12,28 @@ async function requireUser() {
   return session.user.id;
 }
 
+function serializeCut(c: {
+  id: string;
+  userId: string;
+  name: string;
+  startDate: Date;
+  endDate: Date | null;
+  targetWeightKg: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: c.id,
+    userId: c.userId,
+    name: c.name,
+    startDate: c.startDate,
+    endDate: c.endDate,
+    targetWeightKg: Number(c.targetWeightKg),
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+  };
+}
+
 export async function createCut(input: {
   name: string;
   startDate: Date;
@@ -42,7 +64,7 @@ export async function createCut(input: {
     });
     revalidatePath('/cuts');
     revalidatePath('/dashboard');
-    return cut;
+    return serializeCut(cut);
   });
 }
 
@@ -78,7 +100,7 @@ export async function updateCut(
     });
     revalidatePath('/cuts');
     revalidatePath('/dashboard');
-    return cut;
+    return serializeCut(cut);
   });
 }
 
@@ -97,7 +119,7 @@ export async function endCut(cutId: string, input: { endDate: Date }) {
     });
     revalidatePath('/cuts');
     revalidatePath('/dashboard');
-    return cut;
+    return serializeCut(cut);
   });
 }
 
