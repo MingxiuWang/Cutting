@@ -2,7 +2,7 @@
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 
-type Point = { date: string; fat: number; muscle: number; water: number };
+type Point = { date: string; fat: number | null; muscle: number | null; water: number | null };
 
 type Props = {
   title: string;
@@ -25,9 +25,9 @@ export default function CompositionChart({ title, data, headerRight }: Props) {
             <YAxis tick={{ fontSize: 11, fill: '#737373' }} stroke="#e5e5e5" domain={['auto', 'auto']} />
             <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '12px' }} />
             <Legend wrapperStyle={{ fontSize: '12px' }} />
-            <Line type="monotone" dataKey="fat" stroke="#dc2626" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="muscle" stroke="#059669" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="water" stroke="#2563eb" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="fat" stroke="#dc2626" strokeWidth={2} dot={false} connectNulls />
+            <Line type="monotone" dataKey="muscle" stroke="#059669" strokeWidth={2} dot={false} connectNulls />
+            <Line type="monotone" dataKey="water" stroke="#2563eb" strokeWidth={2} dot={false} connectNulls />
           </LineChart>
         </ResponsiveContainer>
       </div>

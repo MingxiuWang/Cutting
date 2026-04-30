@@ -12,9 +12,9 @@ type Row = {
   measuredAt: Date;
   period: 'AM' | 'PM';
   weightKg: number;
-  bodyFatPct: number;
-  musclePct: number;
-  waterPct: number;
+  bodyFatPct: number | null;
+  musclePct: number | null;
+  waterPct: number | null;
   note: string | null;
   createdAt: Date;
 };
@@ -68,9 +68,9 @@ export default function EntryTable({ entries }: { entries: Row[] }) {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-neutral-900">{e.weightKg.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-sm text-neutral-700">{e.bodyFatPct.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-sm text-neutral-700">{e.musclePct.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-sm text-neutral-700">{e.waterPct.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-700">{e.bodyFatPct === null ? <span className="text-neutral-300">—</span> : e.bodyFatPct.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-700">{e.musclePct === null ? <span className="text-neutral-300">—</span> : e.musclePct.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-700">{e.waterPct === null ? <span className="text-neutral-300">—</span> : e.waterPct.toFixed(1)}</td>
                   <td className="px-4 py-3 text-sm max-w-xs truncate text-neutral-500">{e.note}</td>
                   <td className="px-4 py-3 text-right">
                     <button

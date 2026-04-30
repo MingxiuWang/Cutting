@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Entry" ALTER COLUMN "bodyFatPct" DROP NOT NULL,
+ALTER COLUMN "musclePct" DROP NOT NULL,
+ALTER COLUMN "waterPct" DROP NOT NULL;

@@ -106,9 +106,9 @@ export default async function DashboardPage() {
               measuredAt: e.measuredAt,
               period: e.period,
               weightKg: Number(e.weightKg),
-              bodyFatPct: Number(e.bodyFatPct),
-              musclePct: Number(e.musclePct),
-              waterPct: Number(e.waterPct),
+              bodyFatPct: e.bodyFatPct === null ? null : Number(e.bodyFatPct),
+              musclePct: e.musclePct === null ? null : Number(e.musclePct),
+              waterPct: e.waterPct === null ? null : Number(e.waterPct),
               note: e.note,
               createdAt: e.createdAt,
             }))}

@@ -49,9 +49,9 @@ model Entry {
   measuredDay  DateTime @db.Date
   period       Period
   weightKg     Decimal  @db.Decimal(5, 1)
-  bodyFatPct   Decimal  @db.Decimal(4, 1)
-  musclePct    Decimal  @db.Decimal(4, 1)
-  waterPct     Decimal  @db.Decimal(4, 1)
+  bodyFatPct   Decimal? @db.Decimal(4, 1)
+  musclePct    Decimal? @db.Decimal(4, 1)
+  waterPct     Decimal? @db.Decimal(4, 1)
   note         String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

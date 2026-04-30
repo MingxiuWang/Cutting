@@ -14,6 +14,12 @@ async function requireUser() {
   return session.user.id;
 }
 
+function toNumberOrNull(v: unknown): number | null {
+  if (v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 function serializeEntry(e: {
   id: string;
   userId: string;
@@ -37,9 +43,9 @@ function serializeEntry(e: {
     measuredDay: e.measuredDay,
     period: e.period,
     weightKg: Number(e.weightKg),
-    bodyFatPct: Number(e.bodyFatPct),
-    musclePct: Number(e.musclePct),
-    waterPct: Number(e.waterPct),
+    bodyFatPct: toNumberOrNull(e.bodyFatPct),
+    musclePct: toNumberOrNull(e.musclePct),
+    waterPct: toNumberOrNull(e.waterPct),
     note: e.note,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
@@ -50,9 +56,9 @@ export async function createEntry(input: {
   measuredAt: Date;
   period: 'AM' | 'PM';
   weightKg: number;
-  bodyFatPct: number;
-  musclePct: number;
-  waterPct: number;
+  bodyFatPct?: number | null;
+  musclePct?: number | null;
+  waterPct?: number | null;
   note?: string;
   tzOffsetMinutes: number;
 }) {
@@ -86,9 +92,9 @@ export async function createEntry(input: {
         measuredDay,
         period,
         weightKg,
-        bodyFatPct,
-        musclePct,
-        waterPct,
+        bodyFatPct: bodyFatPct ?? null,
+        musclePct: musclePct ?? null,
+        waterPct: waterPct ?? null,
         note: note ?? null,
       },
     });
@@ -111,9 +117,9 @@ export async function updateEntry(
     measuredAt: Date;
     period: 'AM' | 'PM';
     weightKg: number;
-    bodyFatPct: number;
-    musclePct: number;
-    waterPct: number;
+    bodyFatPct: number | null;
+    musclePct: number | null;
+    waterPct: number | null;
     note?: string;
   }> & { tzOffsetMinutes: number },
 ) {

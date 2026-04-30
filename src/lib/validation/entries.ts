@@ -9,9 +9,9 @@ export const createEntrySchema = z.object({
     .refine((d) => d.getTime() >= Date.now() - ONE_YEAR_MS, 'measuredAt cannot be more than 1 year in the past'),
   period: z.enum(['AM', 'PM']),
   weightKg: z.number().min(20).max(400),
-  bodyFatPct: z.number().min(1).max(70),
-  musclePct: z.number().min(10).max(80),
-  waterPct: z.number().min(20).max(80),
+  bodyFatPct: z.number().min(1).max(70).nullable().optional(),
+  musclePct: z.number().min(10).max(80).nullable().optional(),
+  waterPct: z.number().min(20).max(80).nullable().optional(),
   note: z.string().max(500).optional(),
   tzOffsetMinutes: z.number().int().min(-720).max(840),
 });

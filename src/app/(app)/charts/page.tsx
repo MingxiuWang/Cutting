@@ -44,9 +44,9 @@ export default async function ChartsPage({ searchParams }: { searchParams: Promi
   const weightData = (rows: typeof amW) => rows.map((e) => ({ date: fmt(e.measuredAt), weight: Number(e.weightKg) }));
   const compData = (rows: typeof amW) => rows.map((e) => ({
     date: fmt(e.measuredAt),
-    fat: Number(e.bodyFatPct),
-    muscle: Number(e.musclePct),
-    water: Number(e.waterPct),
+    fat: e.bodyFatPct === null ? null : Number(e.bodyFatPct),
+    muscle: e.musclePct === null ? null : Number(e.musclePct),
+    water: e.waterPct === null ? null : Number(e.waterPct),
   }));
 
   return (

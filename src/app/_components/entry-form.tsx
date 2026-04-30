@@ -35,13 +35,19 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
     startTransition(async () => {
       setError(null);
       const note = String(formData.get('note') ?? '').trim();
+      const optionalNumber = (key: string): number | undefined => {
+        const raw = String(formData.get(key) ?? '').trim();
+        if (raw === '') return undefined;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : undefined;
+      };
       const result = await createEntry({
         measuredAt: new Date(String(formData.get('measuredAt'))),
         period: String(formData.get('period')) as 'AM' | 'PM',
         weightKg: Number(formData.get('weightKg')),
-        bodyFatPct: Number(formData.get('bodyFatPct')),
-        musclePct: Number(formData.get('musclePct')),
-        waterPct: Number(formData.get('waterPct')),
+        ...(optionalNumber('bodyFatPct') !== undefined ? { bodyFatPct: optionalNumber('bodyFatPct')! } : {}),
+        ...(optionalNumber('musclePct') !== undefined ? { musclePct: optionalNumber('musclePct')! } : {}),
+        ...(optionalNumber('waterPct') !== undefined ? { waterPct: optionalNumber('waterPct')! } : {}),
         ...(note ? { note } : {}),
         tzOffsetMinutes: -new Date().getTimezoneOffset(),
       });
@@ -95,7 +101,9 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="grid gap-1.5">
-          <label className={labelClass} htmlFor="bodyFatPct">Body fat (%)</label>
+          <label className={labelClass} htmlFor="bodyFatPct">
+            Body fat (%) <span className="text-neutral-400 font-normal">optional</span>
+          </label>
           <input
             id="bodyFatPct"
             name="bodyFatPct"
@@ -103,12 +111,13 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
             step="0.1"
             min="1"
             max="70"
-            required
             className={inputClass}
           />
         </div>
         <div className="grid gap-1.5">
-          <label className={labelClass} htmlFor="musclePct">Muscle (%)</label>
+          <label className={labelClass} htmlFor="musclePct">
+            Muscle (%) <span className="text-neutral-400 font-normal">optional</span>
+          </label>
           <input
             id="musclePct"
             name="musclePct"
@@ -116,12 +125,13 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
             step="0.1"
             min="10"
             max="80"
-            required
             className={inputClass}
           />
         </div>
         <div className="grid gap-1.5">
-          <label className={labelClass} htmlFor="waterPct">Water (%)</label>
+          <label className={labelClass} htmlFor="waterPct">
+            Water (%) <span className="text-neutral-400 font-normal">optional</span>
+          </label>
           <input
             id="waterPct"
             name="waterPct"
@@ -129,7 +139,6 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
             step="0.1"
             min="20"
             max="80"
-            required
             className={inputClass}
           />
         </div>
