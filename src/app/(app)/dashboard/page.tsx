@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
+import { isAdminEmail } from '@/lib/admin';
 import { getDashboardStats } from '@/lib/queries/dashboard';
 import StatCard from '@/app/_components/stat-card';
 import AmPmCard from '@/app/_components/am-pm-card';
@@ -10,6 +12,7 @@ import { Scale, TrendingDown, Activity, Calendar, Target } from 'lucide-react';
 
 export default async function DashboardPage() {
   const session = await auth();
+  if (isAdminEmail(session?.user?.email)) redirect('/admin');
   const userId = session!.user.id;
   const { activeCut, stats, amPm7d, amPm30d, recentEntries } = await getDashboardStats(userId);
 

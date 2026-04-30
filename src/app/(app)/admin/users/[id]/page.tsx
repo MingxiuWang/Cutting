@@ -2,9 +2,19 @@ import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { isCurrentUserAdmin } from '@/lib/admin';
+import { getDashboardStats } from '@/lib/queries/dashboard';
 import LocalDate from '@/app/_components/local-date';
-import { DeleteUserButton, DeleteCutButton, DeleteEntryButton } from '@/app/_components/admin-user-actions';
-import { ArrowLeft } from 'lucide-react';
+import StatCard from '@/app/_components/stat-card';
+import AmPmCard from '@/app/_components/am-pm-card';
+import WeightChart from '@/app/_components/weight-chart';
+import CompositionChart from '@/app/_components/composition-chart';
+import {
+  DeleteUserButton,
+  DeleteCutButton,
+  DeleteEntryButton,
+  ResetPasswordButton,
+} from '@/app/_components/admin-user-actions';
+import { ArrowLeft, Scale, TrendingDown, Activity, Calendar, Target } from 'lucide-react';
 
 export default async function AdminUserPage({ params }: { params: Promise<{ id: string }> }) {
   if (!(await isCurrentUserAdmin())) redirect('/dashboard');
@@ -19,25 +29,107 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
   });
   if (!user) notFound();
 
+  const { activeCut, stats, amPm7d, amPm30d } = await getDashboardStats(id);
+
+  // Fetch chart data — last 90 days, AM and PM separately.
+  const since90 = new Date(Date.now() - 90 * 86400000);
+  const allEntries = await db.entry.findMany({
+    where: { userId: id, measuredAt: { gte: since90 } },
+    orderBy: { measuredAt: 'asc' },
+  });
+  const amE = allEntries.filter((e) => e.period === 'AM');
+  const pmE = allEntries.filter((e) => e.period === 'PM');
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const weightData = (rows: typeof allEntries) =>
+    rows.map((e) => ({ date: fmt(e.measuredAt), weight: Number(e.weightKg) }));
+  const compData = (rows: typeof allEntries) =>
+    rows.map((e) => ({
+      date: fmt(e.measuredAt),
+      fat: e.bodyFatPct === null ? null : Number(e.bodyFatPct),
+      muscle: e.musclePct === null ? null : Number(e.musclePct),
+      water: e.waterPct === null ? null : Number(e.waterPct),
+    }));
+
   return (
-    <div className="space-y-8">
-      <Link href="/admin" className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900">
+    <div className="space-y-10">
+      <Link
+        href="/admin"
+        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900"
+      >
         <ArrowLeft className="w-4 h-4" />
         Back to admin
       </Link>
 
-      <header className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{user.email}</h1>
-          <p className="text-neutral-500 text-sm mt-1">
-            Signed up <LocalDate value={user.createdAt} /> · {user.cuts.length} cuts · {user.entries.length} recent entries
-          </p>
+      <header className="rounded-2xl bg-white border border-neutral-200 shadow-sm p-6">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{user.email}</h1>
+            <p className="text-neutral-500 text-sm mt-1">
+              Signed up <LocalDate value={user.createdAt} /> · {user.cuts.length} cut
+              {user.cuts.length === 1 ? '' : 's'} · {user.entries.length} recent entries
+            </p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <DeleteUserButton userId={user.id} email={user.email} />
+          </div>
         </div>
-        <DeleteUserButton userId={user.id} email={user.email} />
+        <div className="mt-4">
+          <ResetPasswordButton userId={user.id} email={user.email} />
+        </div>
       </header>
 
-      <section>
-        <h2 className="text-lg font-medium text-neutral-900 mb-3">Cuts ({user.cuts.length})</h2>
+      <section className="space-y-4">
+        <h2 className="text-lg font-medium text-neutral-900">Dashboard</h2>
+        {!activeCut ? (
+          <p className="text-sm text-neutral-500">No active cut.</p>
+        ) : (
+          <>
+            <div className="rounded-2xl bg-white border border-neutral-200 p-5">
+              <span className="inline-block text-xs font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
+                Active cut
+              </span>
+              <h3 className="mt-2 text-xl font-semibold text-neutral-900">{activeCut.name}</h3>
+              <p className="text-sm text-neutral-500 mt-1">
+                <LocalDate value={activeCut.startDate} /> → target {Number(activeCut.targetWeightKg).toFixed(1)} kg
+              </p>
+              {activeCut.expectedEndDate && (
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Expected end: <LocalDate value={activeCut.expectedEndDate} />
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <StatCard label="Start (AM)" value={stats!.startWeightKg?.toFixed(1) ?? null} suffix="kg" icon={Scale} />
+              <StatCard label="Current (AM)" value={stats!.currentWeightKg?.toFixed(1) ?? null} suffix="kg" icon={Scale} />
+              <StatCard label="Total lost" value={stats!.totalLostKg?.toFixed(1) ?? null} suffix="kg" icon={TrendingDown} />
+              <StatCard label="Avg weekly rate" value={stats!.weeklyRateKg?.toFixed(2) ?? null} suffix="kg/wk" icon={Activity} />
+              <StatCard label="Days in cut" value={stats!.daysInCut} icon={Calendar} />
+              <StatCard label="Progress" value={stats!.progressPct?.toFixed(0) ?? null} suffix="%" icon={Target} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <AmPmCard title="Avg AM vs PM (7d)" am={amPm7d!.amAvgKg} pm={amPm7d!.pmAvgKg} />
+              <AmPmCard title="Avg AM vs PM (30d)" am={amPm30d!.amAvgKg} pm={amPm30d!.pmAvgKg} />
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-medium text-neutral-900">Charts (last 90 days)</h2>
+        {allEntries.length === 0 ? (
+          <p className="text-sm text-neutral-500">No data in the last 90 days.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            <WeightChart title="Weight — Morning (kg)" data={weightData(amE)} />
+            <WeightChart title="Weight — Evening (kg)" data={weightData(pmE)} />
+            <CompositionChart title="Composition — Morning (%)" data={compData(amE)} />
+            <CompositionChart title="Composition — Evening (%)" data={compData(pmE)} />
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-medium text-neutral-900">Cuts ({user.cuts.length})</h2>
         {user.cuts.length === 0 ? (
           <p className="text-sm text-neutral-500">No cuts.</p>
         ) : (
@@ -79,8 +171,8 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
         )}
       </section>
 
-      <section>
-        <h2 className="text-lg font-medium text-neutral-900 mb-3">Entries ({user.entries.length})</h2>
+      <section className="space-y-3">
+        <h2 className="text-lg font-medium text-neutral-900">Entries ({user.entries.length})</h2>
         {user.entries.length === 0 ? (
           <p className="text-sm text-neutral-500">No entries.</p>
         ) : (

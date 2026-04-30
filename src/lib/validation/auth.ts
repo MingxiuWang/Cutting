@@ -21,5 +21,6 @@ export const changePasswordSchema = z.object({
   newPassword: password,
 });
 export const deleteAccountSchema = z.object({ password: z.string().min(1) });
+export const adminResetPasswordSchema = z.object({ newPassword: password });
 
 export type SignupInput = z.infer<typeof signupSchema>;

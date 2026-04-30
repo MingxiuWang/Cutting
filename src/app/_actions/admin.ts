@@ -1,12 +1,32 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { ActionError, runAction } from '@/lib/errors';
 import { requireAdmin } from '@/lib/admin';
 import { updateCutSchema } from '@/lib/validation/cuts';
 import { updateEntrySchema } from '@/lib/validation/entries';
+import { adminResetPasswordSchema } from '@/lib/validation/auth';
 import { deriveMeasuredDay } from '@/lib/time';
+
+export async function adminResetPassword(userId: string, input: { newPassword: string }) {
+  return runAction(async () => {
+    await requireAdmin();
+    const parsed = adminResetPasswordSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new ActionError(
+        'VALIDATION_FAILED',
+        'Invalid password',
+        parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      );
+    }
+    const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
+    await db.user.update({ where: { id: userId }, data: { passwordHash } });
+    revalidatePath('/admin');
+    return { id: userId };
+  });
+}
 
 export async function adminDeleteUser(userId: string) {
   return runAction(async () => {

@@ -26,8 +26,9 @@ const baseItems: Item[] = [
 
 export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
+  // Admin is a pure manager view: hide the personal-tracking nav.
   const items: Item[] = isAdmin
-    ? [...baseItems, { href: '/admin', label: 'Admin', icon: Shield }]
+    ? [{ href: '/admin', label: 'Admin', icon: Shield }]
     : baseItems;
   return (
     <>

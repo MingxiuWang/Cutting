@@ -11,8 +11,10 @@ import {
   adminDeleteUser,
   adminDeleteEntry,
   adminUpdateEntry,
+  adminResetPassword,
 } from '@/app/_actions/admin';
 import { ADMIN_EMAIL } from '@/lib/admin';
+import bcrypt from 'bcryptjs';
 
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
 
@@ -65,6 +67,29 @@ describe('admin actions — happy path', () => {
     expect(result.ok).toBe(true);
     const fresh = await db.entry.findUnique({ where: { id: stale.id } });
     expect(Number(fresh!.weightKg)).toBe(80);
+  });
+
+  it('adminResetPassword sets a new password without knowing the old one', async () => {
+    const admin = await makeUser({ email: ADMIN_EMAIL });
+    const target = await makeUser({ email: 'forgetful@example.com', password: 'oldpass1' });
+    mockSession(admin.id, admin.email);
+
+    const result = await adminResetPassword(target.id, { newPassword: 'newpass9' });
+    expect(result.ok).toBe(true);
+
+    const fresh = await db.user.findUnique({ where: { id: target.id } });
+    expect(await bcrypt.compare('newpass9', fresh!.passwordHash)).toBe(true);
+    expect(await bcrypt.compare('oldpass1', fresh!.passwordHash)).toBe(false);
+  });
+
+  it('adminResetPassword rejects weak passwords', async () => {
+    const admin = await makeUser({ email: ADMIN_EMAIL });
+    const target = await makeUser({ email: 'weak@example.com' });
+    mockSession(admin.id, admin.email);
+
+    const result = await adminResetPassword(target.id, { newPassword: 'short' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe('VALIDATION_FAILED');
   });
 
   it('adminDeleteUser cascades to cuts and entries', async () => {

@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { isAdminEmail } from '@/lib/admin';
 import { Scale, ChartLine, Target } from 'lucide-react';
 
 export default async function Home() {
   const session = await auth();
-  if (session?.user) redirect('/dashboard');
+  if (session?.user) redirect(isAdminEmail(session.user.email) ? '/admin' : '/dashboard');
   return (
     <main className="min-h-screen flex items-center justify-center bg-neutral-50 p-6">
       <div className="max-w-xl text-center">
