@@ -6,7 +6,7 @@ A personal body-composition tracker for cutting cycles. Log weight, body fat %, 
 
 ## Features
 
-- Email + password auth (multi-user)
+- Email + password auth, multi-user, **no email verification required** — sign up anonymously with any address (real or fake) and start logging in seconds
 - Cuts as first-class objects: start date, target weight, optional expected end date
 - Twice-daily entry logging (one AM + one PM per calendar day)
 - Dashboard with progress bar, AM-vs-PM averages, weekly rate of change
