@@ -23,14 +23,19 @@ export default function CutForm({ mostRecentWeightKg }: { mostRecentWeightKg: nu
     }
     startTransition(async () => {
       setError(null);
+      const expectedEndRaw = String(formData.get('expectedEndDate') ?? '').trim();
       const result = await createCut({
         name: String(formData.get('name') ?? ''),
         startDate: new Date(String(formData.get('startDate') ?? '')),
         targetWeightKg: Number(formData.get('targetWeightKg') ?? target),
+        ...(expectedEndRaw ? { expectedEndDate: new Date(expectedEndRaw) } : {}),
       });
       if (!result.ok) {
         if (result.error === 'ACTIVE_CUT_EXISTS') setError('You already have an active cut. End it before starting a new one.');
-        else setError(result.message ?? 'Could not create cut');
+        else if (result.error === 'VALIDATION_FAILED') {
+          const fieldMsg = Object.values(result.fieldErrors ?? {}).flat().join('; ');
+          setError(fieldMsg || result.message || 'Invalid input');
+        } else setError(result.message ?? 'Could not create cut');
         return;
       }
       router.refresh();
@@ -70,6 +75,18 @@ export default function CutForm({ mostRecentWeightKg }: { mostRecentWeightKg: nu
             className={inputClass}
           />
         </div>
+      </div>
+      <div className="grid gap-1.5">
+        <label className={labelClass} htmlFor="cut-expected-end">
+          Expected end date <span className="text-neutral-400 font-normal">(optional)</span>
+        </label>
+        <input
+          id="cut-expected-end"
+          name="expectedEndDate"
+          type="date"
+          className={inputClass}
+        />
+        <p className="text-xs text-neutral-500">When you plan to finish. Used to track pacing — you can change or skip this.</p>
       </div>
 
       {showWarning && (

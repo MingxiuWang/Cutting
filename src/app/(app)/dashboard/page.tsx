@@ -50,6 +50,11 @@ export default async function DashboardPage() {
             <p className="text-sm text-neutral-500 mt-1">
               {activeCut.startDate.toISOString().slice(0, 10)} → target {Number(activeCut.targetWeightKg).toFixed(1)} kg
             </p>
+            {activeCut.expectedEndDate && (
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Expected end: {activeCut.expectedEndDate.toISOString().slice(0, 10)}
+              </p>
+            )}
           </div>
           <div className="text-right">
             <div className="text-xs uppercase tracking-wider text-neutral-500">Progress</div>

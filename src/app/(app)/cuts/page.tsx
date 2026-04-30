@@ -44,6 +44,7 @@ export default async function CutsPage() {
               id: c.id,
               name: c.name,
               startDate: c.startDate,
+              expectedEndDate: c.expectedEndDate,
               endDate: c.endDate,
               targetWeightKg: Number(c.targetWeightKg),
             }))}

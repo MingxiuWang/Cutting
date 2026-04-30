@@ -4,7 +4,14 @@ import { useTransition } from 'react';
 import { endCut, deleteCut } from '@/app/_actions/cuts';
 import { useRouter } from 'next/navigation';
 
-type CutRow = { id: string; name: string; startDate: Date; endDate: Date | null; targetWeightKg: number };
+type CutRow = {
+  id: string;
+  name: string;
+  startDate: Date;
+  expectedEndDate: Date | null;
+  endDate: Date | null;
+  targetWeightKg: number;
+};
 
 export default function CutList({ cuts }: { cuts: CutRow[] }) {
   const router = useRouter();
@@ -51,6 +58,11 @@ export default function CutList({ cuts }: { cuts: CutRow[] }) {
               <div className="text-sm text-neutral-500 mt-1">
                 {c.startDate.toISOString().slice(0, 10)} → {c.endDate ? c.endDate.toISOString().slice(0, 10) : 'now'} · target {c.targetWeightKg.toFixed(1)} kg
               </div>
+              {c.expectedEndDate && (
+                <div className="text-xs text-neutral-500 mt-0.5">
+                  Expected end: {c.expectedEndDate.toISOString().slice(0, 10)}
+                </div>
+              )}
             </div>
             <div className="flex gap-2 shrink-0">
               {!c.endDate && (

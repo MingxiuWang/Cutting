@@ -17,6 +17,7 @@ function serializeCut(c: {
   userId: string;
   name: string;
   startDate: Date;
+  expectedEndDate: Date | null;
   endDate: Date | null;
   targetWeightKg: unknown;
   createdAt: Date;
@@ -27,6 +28,7 @@ function serializeCut(c: {
     userId: c.userId,
     name: c.name,
     startDate: c.startDate,
+    expectedEndDate: c.expectedEndDate,
     endDate: c.endDate,
     targetWeightKg: Number(c.targetWeightKg),
     createdAt: c.createdAt,
@@ -38,6 +40,7 @@ export async function createCut(input: {
   name: string;
   startDate: Date;
   targetWeightKg: number;
+  expectedEndDate?: Date;
 }) {
   return runAction(async () => {
     const userId = await requireUser();
@@ -60,6 +63,7 @@ export async function createCut(input: {
         name: parsed.data.name,
         startDate: parsed.data.startDate,
         targetWeightKg: parsed.data.targetWeightKg,
+        expectedEndDate: parsed.data.expectedEndDate ?? null,
       },
     });
     revalidatePath('/cuts');
@@ -77,7 +81,7 @@ async function loadOwnedCut(cutId: string, userId: string) {
 
 export async function updateCut(
   cutId: string,
-  input: { name?: string; startDate?: Date; targetWeightKg?: number },
+  input: { name?: string; startDate?: Date; targetWeightKg?: number; expectedEndDate?: Date | null },
 ) {
   return runAction(async () => {
     const userId = await requireUser();
@@ -90,10 +94,11 @@ export async function updateCut(
         parsed.error.flatten().fieldErrors as Record<string, string[]>,
       );
     }
-    const data: { name?: string; startDate?: Date; targetWeightKg?: number } = {};
+    const data: { name?: string; startDate?: Date; targetWeightKg?: number; expectedEndDate?: Date | null } = {};
     if (parsed.data.name !== undefined) data.name = parsed.data.name;
     if (parsed.data.startDate !== undefined) data.startDate = parsed.data.startDate;
     if (parsed.data.targetWeightKg !== undefined) data.targetWeightKg = parsed.data.targetWeightKg;
+    if (parsed.data.expectedEndDate !== undefined) data.expectedEndDate = parsed.data.expectedEndDate;
     const cut = await db.cut.update({
       where: { id: cutId },
       data,
