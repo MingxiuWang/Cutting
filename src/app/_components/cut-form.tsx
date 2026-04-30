@@ -1,9 +1,17 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { createCut } from '@/app/_actions/cuts';
 import { useRouter } from 'next/navigation';
 import { Plus, LoaderCircle } from 'lucide-react';
+
+function localToday(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 const inputClass =
   'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent';
@@ -14,6 +22,10 @@ export default function CutForm({ mostRecentWeightKg }: { mostRecentWeightKg: nu
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [target, setTarget] = useState<number>(70);
+  const [startDate, setStartDate] = useState<string>('');
+  useEffect(() => {
+    setStartDate(localToday());
+  }, []);
 
   const showWarning = mostRecentWeightKg !== null && target >= mostRecentWeightKg;
 
@@ -56,7 +68,8 @@ export default function CutForm({ mostRecentWeightKg }: { mostRecentWeightKg: nu
             name="startDate"
             required
             type="date"
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
             className={inputClass}
           />
         </div>

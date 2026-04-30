@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { deleteEntry } from '@/app/_actions/entries';
 import { isWithinEditWindow } from '@/lib/time';
 import { Sun, Moon, Trash2 } from 'lucide-react';
+import LocalDate from '@/app/_components/local-date';
 
 type Row = {
   id: string;
@@ -52,7 +53,7 @@ export default function EntryTable({ entries }: { entries: Row[] }) {
               return (
                 <tr key={e.id} className="border-t border-neutral-100">
                   <td className="px-4 py-3 text-sm whitespace-nowrap text-neutral-700">
-                    {e.measuredAt.toISOString().slice(0, 16).replace('T', ' ')}
+                    <LocalDate value={e.measuredAt} mode="datetime" />
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <span

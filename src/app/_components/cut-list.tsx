@@ -3,6 +3,7 @@
 import { useTransition } from 'react';
 import { endCut, deleteCut } from '@/app/_actions/cuts';
 import { useRouter } from 'next/navigation';
+import LocalDate from '@/app/_components/local-date';
 
 type CutRow = {
   id: string;
@@ -56,11 +57,11 @@ export default function CutList({ cuts }: { cuts: CutRow[] }) {
                 )}
               </div>
               <div className="text-sm text-neutral-500 mt-1">
-                {c.startDate.toISOString().slice(0, 10)} → {c.endDate ? c.endDate.toISOString().slice(0, 10) : 'now'} · target {c.targetWeightKg.toFixed(1)} kg
+                <LocalDate value={c.startDate} /> → {c.endDate ? <LocalDate value={c.endDate} /> : 'now'} · target {c.targetWeightKg.toFixed(1)} kg
               </div>
               {c.expectedEndDate && (
                 <div className="text-xs text-neutral-500 mt-0.5">
-                  Expected end: {c.expectedEndDate.toISOString().slice(0, 10)}
+                  Expected end: <LocalDate value={c.expectedEndDate} />
                 </div>
               )}
             </div>

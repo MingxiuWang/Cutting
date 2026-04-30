@@ -5,6 +5,7 @@ import StatCard from '@/app/_components/stat-card';
 import AmPmCard from '@/app/_components/am-pm-card';
 import EntryForm from '@/app/_components/entry-form';
 import EntryTable from '@/app/_components/entry-table';
+import LocalDate from '@/app/_components/local-date';
 import { Scale, TrendingDown, Activity, Calendar, Target } from 'lucide-react';
 
 export default async function DashboardPage() {
@@ -48,11 +49,11 @@ export default async function DashboardPage() {
             </span>
             <h2 className="mt-2 text-2xl font-semibold text-neutral-900">{activeCut.name}</h2>
             <p className="text-sm text-neutral-500 mt-1">
-              {activeCut.startDate.toISOString().slice(0, 10)} → target {Number(activeCut.targetWeightKg).toFixed(1)} kg
+              <LocalDate value={activeCut.startDate} /> → target {Number(activeCut.targetWeightKg).toFixed(1)} kg
             </p>
             {activeCut.expectedEndDate && (
               <p className="text-xs text-neutral-500 mt-0.5">
-                Expected end: {activeCut.expectedEndDate.toISOString().slice(0, 10)}
+                Expected end: <LocalDate value={activeCut.expectedEndDate} />
               </p>
             )}
           </div>

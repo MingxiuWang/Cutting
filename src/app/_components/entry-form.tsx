@@ -1,9 +1,19 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createEntry } from '@/app/_actions/entries';
 import { Save, LoaderCircle } from 'lucide-react';
+
+function localNowISO(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hour = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hour}:${min}`;
+}
 
 const inputClass =
   'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent';
@@ -13,9 +23,13 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const now = new Date();
-  const defaultPeriod: 'AM' | 'PM' = now.getHours() < 12 ? 'AM' : 'PM';
-  const tzOffsetMinutes = -now.getTimezoneOffset();
+  const [measuredAt, setMeasuredAt] = useState<string>('');
+  const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
+  useEffect(() => {
+    const now = new Date();
+    setMeasuredAt(localNowISO());
+    setPeriod(now.getHours() < 12 ? 'AM' : 'PM');
+  }, []);
 
   const onSubmit = (formData: FormData) => {
     startTransition(async () => {
@@ -29,7 +43,7 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
         musclePct: Number(formData.get('musclePct')),
         waterPct: Number(formData.get('waterPct')),
         ...(note ? { note } : {}),
-        tzOffsetMinutes,
+        tzOffsetMinutes: -new Date().getTimezoneOffset(),
       });
       if (!result.ok) {
         if (result.error === 'DUPLICATE_PERIOD_TODAY') setError('You already logged this period today. Edit the existing entry instead.');
@@ -41,8 +55,6 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
     });
   };
 
-  const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-
   return (
     <form action={onSubmit} className="grid gap-4 max-w-md">
       <div className="grid grid-cols-2 gap-3">
@@ -53,13 +65,14 @@ export default function EntryForm({ onDone }: { onDone?: () => void }) {
             name="measuredAt"
             type="datetime-local"
             required
-            defaultValue={localISO}
+            value={measuredAt}
+            onChange={(e) => setMeasuredAt(e.target.value)}
             className={inputClass}
           />
         </div>
         <div className="grid gap-1.5">
           <label className={labelClass} htmlFor="period">Period</label>
-          <select id="period" name="period" defaultValue={defaultPeriod} className={inputClass}>
+          <select id="period" name="period" value={period} onChange={(e) => setPeriod(e.target.value as 'AM' | 'PM')} className={inputClass}>
             <option value="AM">Morning</option>
             <option value="PM">Evening</option>
           </select>
