@@ -10,12 +10,13 @@ import {
   Target,
   Settings,
   LogOut,
+  Shield,
   type LucideIcon,
 } from 'lucide-react';
 
 type Item = { href: string; label: string; icon: LucideIcon };
 
-const items: Item[] = [
+const baseItems: Item[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/charts', label: 'Charts', icon: ChartLine },
   { href: '/entries', label: 'Entries', icon: ClipboardList },
@@ -23,8 +24,11 @@ const items: Item[] = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function Nav() {
+export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
+  const items: Item[] = isAdmin
+    ? [...baseItems, { href: '/admin', label: 'Admin', icon: Shield }]
+    : baseItems;
   return (
     <>
       <nav className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 md:border-r md:border-neutral-200 bg-white p-4 gap-1">
