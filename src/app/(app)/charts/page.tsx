@@ -51,24 +51,31 @@ export default async function ChartsPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Charts</h1>
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <RangeSelector paramKey="weightAm" current={ranges.weightAm} />
-          <WeightChart title="Weight — Morning (kg)" data={weightData(amW)} />
-        </div>
-        <div className="space-y-2">
-          <RangeSelector paramKey="weightPm" current={ranges.weightPm} />
-          <WeightChart title="Weight — Evening (kg)" data={weightData(pmW)} />
-        </div>
-        <div className="space-y-2">
-          <RangeSelector paramKey="compAm" current={ranges.compAm} />
-          <CompositionChart title="Composition — Morning (%)" data={compData(amC)} />
-        </div>
-        <div className="space-y-2">
-          <RangeSelector paramKey="compPm" current={ranges.compPm} />
-          <CompositionChart title="Composition — Evening (%)" data={compData(pmC)} />
-        </div>
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Charts</h1>
+        <p className="text-neutral-500 text-sm mt-1">Filter each metric independently.</p>
+      </header>
+      <div className="grid md:grid-cols-2 gap-5">
+        <WeightChart
+          title="Weight — Morning (kg)"
+          data={weightData(amW)}
+          headerRight={<RangeSelector paramKey="weightAm" current={ranges.weightAm} />}
+        />
+        <WeightChart
+          title="Weight — Evening (kg)"
+          data={weightData(pmW)}
+          headerRight={<RangeSelector paramKey="weightPm" current={ranges.weightPm} />}
+        />
+        <CompositionChart
+          title="Composition — Morning (%)"
+          data={compData(amC)}
+          headerRight={<RangeSelector paramKey="compAm" current={ranges.compAm} />}
+        />
+        <CompositionChart
+          title="Composition — Evening (%)"
+          data={compData(pmC)}
+          headerRight={<RangeSelector paramKey="compPm" current={ranges.compPm} />}
+        />
       </div>
     </div>
   );
