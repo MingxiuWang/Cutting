@@ -25,9 +25,9 @@ export default function CutList({ cuts }: { cuts: CutRow[] }) {
 
   const handleDelete = (cutId: string) =>
     startTransition(async () => {
-      if (!confirm('Delete this cut?')) return;
+      if (!confirm('Delete this cut? Any logged entries are kept (they just lose their cut association).')) return;
       const result = await deleteCut(cutId);
-      if (!result.ok && result.error === 'CUT_HAS_ENTRIES') alert('This cut has entries. End it instead.');
+      if (!result.ok) alert(result.message ?? 'Could not delete cut');
       router.refresh();
     });
 

@@ -132,12 +132,12 @@ export async function deleteCut(cutId: string) {
   return runAction(async () => {
     const userId = await requireUser();
     await loadOwnedCut(cutId, userId);
-    const entryCount = await db.entry.count({ where: { cutId } });
-    if (entryCount > 0) {
-      throw new ActionError('CUT_HAS_ENTRIES', 'End the cut instead of deleting it.');
-    }
+    // Entries belonging to this cut have ON DELETE SET NULL — they stay in the
+    // user's history with `cutId = null` so no logged data is lost.
     await db.cut.delete({ where: { id: cutId } });
     revalidatePath('/cuts');
+    revalidatePath('/dashboard');
+    revalidatePath('/entries');
     return { id: cutId };
   });
 }

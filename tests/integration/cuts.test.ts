@@ -167,7 +167,7 @@ describe('deleteCut', () => {
     expect(await db.cut.findUnique({ where: { id: created.data.id } })).toBeNull();
   });
 
-  it('returns CUT_HAS_ENTRIES when entries exist', async () => {
+  it('deletes a cut with entries and detaches them (cutId set to null)', async () => {
     const user = await makeUser();
     mockSession(user.id);
     const created = await createCut({
@@ -176,7 +176,7 @@ describe('deleteCut', () => {
       targetWeightKg: 70,
     });
     if (!created.ok) throw new Error('precondition');
-    await db.entry.create({
+    const entry = await db.entry.create({
       data: {
         userId: user.id,
         cutId: created.data.id,
@@ -190,7 +190,10 @@ describe('deleteCut', () => {
       },
     });
     const result = await deleteCut(created.data.id);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toBe('CUT_HAS_ENTRIES');
+    expect(result.ok).toBe(true);
+    expect(await db.cut.findUnique({ where: { id: created.data.id } })).toBeNull();
+    const orphan = await db.entry.findUnique({ where: { id: entry.id } });
+    expect(orphan).not.toBeNull();
+    expect(orphan!.cutId).toBeNull();
   });
 });
