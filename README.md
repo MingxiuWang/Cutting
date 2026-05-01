@@ -89,26 +89,6 @@ pnpm exec tsc --noEmit  # type check
 pnpm build              # production build
 ```
 
-## Roadmap
-
-### Next up — native mobile app
-
-Logging happens twice a day, every day, and it's almost always done from a phone. The web app is responsive, but a real mobile app removes friction:
-
-- One-tap launch from the home screen
-- Push reminders to weigh in (morning + evening)
-- Native number keyboards for weight / percentage inputs
-- Offline buffer that syncs when back online
-- Apple Health / Google Fit integration to pull body-composition values straight from a smart scale
-
-**Direction:** React Native + Expo, with a shared `@cutting/core` workspace package that exports the Zod schemas, error types, and pure helpers used by the web app today. The mobile client will call the same Server Actions through a thin tRPC or REST wrapper, so business logic stays in one place.
-
-### Later phases
-
-- **Phase 2 — Nutrition:** calorie + macro logging tied to weight trend
-- **Phase 3 — Goals + reminders:** target dates, twice-daily push notifications, streak tracking
-- **Phase 4 — Weekly summaries:** auto-generated reports (avg weight, rate of loss, macro adherence) emailed weekly
-
 ## License
 
 Personal project. All rights reserved.
