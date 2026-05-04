@@ -40,7 +40,8 @@ export default async function ChartsPage({ searchParams }: { searchParams: Promi
     fetch('PM', ranges.compPm),
   ]);
 
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  // Send the full ISO timestamp; the chart components format it in the viewer's local TZ.
+  const fmt = (d: Date) => d.toISOString();
   const weightData = (rows: typeof amW) => rows.map((e) => ({ date: fmt(e.measuredAt), weight: Number(e.weightKg) }));
   const compData = (rows: typeof amW) => rows.map((e) => ({
     date: fmt(e.measuredAt),

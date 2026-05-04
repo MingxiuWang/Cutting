@@ -39,7 +39,8 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
   });
   const amE = allEntries.filter((e) => e.period === 'AM');
   const pmE = allEntries.filter((e) => e.period === 'PM');
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  // Send the full ISO timestamp; the chart components format it in the viewer's local TZ.
+  const fmt = (d: Date) => d.toISOString();
   const weightData = (rows: typeof allEntries) =>
     rows.map((e) => ({ date: fmt(e.measuredAt), weight: Number(e.weightKg) }));
   const compData = (rows: typeof allEntries) =>
