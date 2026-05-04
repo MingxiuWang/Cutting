@@ -14,6 +14,7 @@ export default async function AdminPage() {
       id: true,
       email: true,
       createdAt: true,
+      lastLoginAt: true,
       _count: { select: { cuts: true, entries: true } },
       entries: {
         orderBy: { measuredAt: 'desc' },
@@ -24,28 +25,32 @@ export default async function AdminPage() {
   });
 
   const rows = users
-    .map((u) => ({
-      id: u.id,
-      email: u.email,
-      createdAt: u.createdAt,
-      cutCount: u._count.cuts,
-      entryCount: u._count.entries,
-      lastLog: u.entries[0]?.measuredAt ?? null,
-    }))
-    .sort((a, b) => {
-      // Most-recently active first; nulls last.
-      if (a.lastLog && b.lastLog) return b.lastLog.getTime() - a.lastLog.getTime();
-      if (a.lastLog) return -1;
-      if (b.lastLog) return 1;
-      return b.createdAt.getTime() - a.createdAt.getTime();
-    });
+    .map((u) => {
+      const lastLog = u.entries[0]?.measuredAt ?? null;
+      const lastSeen = Math.max(
+        u.createdAt.getTime(),
+        u.lastLoginAt?.getTime() ?? 0,
+        lastLog?.getTime() ?? 0,
+      );
+      return {
+        id: u.id,
+        email: u.email,
+        createdAt: u.createdAt,
+        lastLoginAt: u.lastLoginAt,
+        cutCount: u._count.cuts,
+        entryCount: u._count.entries,
+        lastLog,
+        lastSeen,
+      };
+    })
+    .sort((a, b) => b.lastSeen - a.lastSeen);
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Admin</h1>
         <p className="text-neutral-500 text-sm mt-1">
-          {rows.length} user{rows.length === 1 ? '' : 's'} (newest by activity).
+          {rows.length} user{rows.length === 1 ? '' : 's'} — sorted by most recent of signup, login, or log entry.
         </p>
       </header>
 
@@ -55,6 +60,7 @@ export default async function AdminPage() {
             <tr>
               <th className="px-4 py-3 text-left">Email</th>
               <th className="px-4 py-3 text-left">Signed up</th>
+              <th className="px-4 py-3 text-left">Last login</th>
               <th className="px-4 py-3 text-right">Cuts</th>
               <th className="px-4 py-3 text-right">Entries</th>
               <th className="px-4 py-3 text-left">Last log</th>
@@ -67,6 +73,9 @@ export default async function AdminPage() {
                 <td className="px-4 py-3 font-medium text-neutral-900">{u.email}</td>
                 <td className="px-4 py-3 text-neutral-700">
                   <LocalDate value={u.createdAt} />
+                </td>
+                <td className="px-4 py-3 text-neutral-700">
+                  {u.lastLoginAt ? <LocalDate value={u.lastLoginAt} mode="datetime" /> : <span className="text-neutral-300">—</span>}
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">{u.cutCount}</td>
                 <td className="px-4 py-3 text-right tabular-nums">{u.entryCount}</td>
