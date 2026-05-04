@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   Shield,
+  PanelLeftClose,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -24,7 +25,15 @@ const baseItems: Item[] = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
+export default function Nav({
+  isAdmin = false,
+  collapsed = false,
+  onToggle,
+}: {
+  isAdmin?: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
+}) {
   const pathname = usePathname();
   // Admin is a pure manager view: hide the personal-tracking nav.
   const items: Item[] = isAdmin
@@ -32,40 +41,53 @@ export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
     : baseItems;
   return (
     <>
-      <nav className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 md:border-r md:border-neutral-200 bg-white p-4 gap-1">
-        <div className="text-xl font-semibold tracking-tight px-3 mb-6 text-neutral-900">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 mr-2 align-middle" />
-          Cutting
-        </div>
-        {items.map((it) => {
-          const active = pathname.startsWith(it.href);
-          const Icon = it.icon;
-          return (
-            <Link
-              key={it.href}
-              href={it.href}
-              className={
-                active
-                  ? 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm bg-emerald-50 text-emerald-700 font-medium'
-                  : 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-              }
+      {!collapsed && (
+        <nav className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 md:left-0 md:border-r md:border-neutral-200 bg-white p-4 gap-1 z-20">
+          <div className="flex items-center justify-between px-3 mb-6">
+            <div className="text-xl font-semibold tracking-tight text-neutral-900">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 mr-2 align-middle" />
+              Cutting
+            </div>
+            {onToggle && (
+              <button
+                onClick={onToggle}
+                aria-label="Hide menu"
+                className="text-neutral-400 hover:text-neutral-900 p-1 -mr-1"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          {items.map((it) => {
+            const active = pathname.startsWith(it.href);
+            const Icon = it.icon;
+            return (
+              <Link
+                key={it.href}
+                href={it.href}
+                className={
+                  active
+                    ? 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm bg-emerald-50 text-emerald-700 font-medium'
+                    : 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                }
+              >
+                <Icon className="w-4 h-4" />
+                {it.label}
+              </Link>
+            );
+          })}
+          <form action={logout} className="mt-auto">
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-500 hover:text-neutral-900"
             >
-              <Icon className="w-4 h-4" />
-              {it.label}
-            </Link>
-          );
-        })}
-        <form action={logout} className="mt-auto">
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-500 hover:text-neutral-900"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign out
-          </button>
-        </form>
-      </nav>
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 flex">
+              <LogOut className="w-4 h-4" />
+              Sign out
+            </button>
+          </form>
+        </nav>
+      )}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 flex z-20">
         {items.map((it) => {
           const active = pathname.startsWith(it.href);
           const Icon = it.icon;
